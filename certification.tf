@@ -25,4 +25,9 @@ resource "tls_self_signed_cert" "lab7_cert" {
 resource "aws_acm_certificate" "lab7_cert" {
   certificate_body = tls_self_signed_cert.lab7_cert.cert_pem
   private_key      = tls_private_key.lab7_key.private_key_pem
+
+  tags = {
+    Project = "lab7"
+    Name = "lab7-website"
+  }
 }
