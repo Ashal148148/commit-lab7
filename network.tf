@@ -5,6 +5,7 @@ resource "aws_vpc" "lab7_vpc" {
   
     tags = {
         Project = "lab7"
+        Name = "lab7-vpc"
     }
 }
 
@@ -39,14 +40,13 @@ resource "aws_route_table" "lab7_private_route_table" {
   }  
 }
 
-resource "aws_route" "lab7_private_route1" {
+resource "aws_route_table_association" "lab7_private_route_table_association1" {
+  subnet_id = aws_subnet.lab7_private_subnet1.id
   route_table_id = aws_route_table.lab7_private_route_table.id
-  destination_cidr_block = "10.7.0.0/16"
-  gateway_id = "local"
 }
 
-resource "aws_route_table_association" "lab7_private_route_table_association" {
-  subnet_id = aws_subnet.lab7_private_subnet1.id
+resource "aws_route_table_association" "lab7_private_route_table_association2" {
+  subnet_id = aws_subnet.lab7_private_subnet2.id
   route_table_id = aws_route_table.lab7_private_route_table.id
 }
 
@@ -66,7 +66,7 @@ resource "aws_vpc_endpoint" "lab7_ecr_api_endpoint" {
   vpc_id = aws_vpc.lab7_vpc.id
   service_name =  "com.amazonaws.eu-north-1.ecr.api"
   vpc_endpoint_type = "Interface"
-  security_group_ids = [ aws_security_group.lab7_private_sg ]
+  security_group_ids = [ aws_security_group.lab7_private_sg.id ]
   subnet_ids = [ aws_subnet.lab7_private_subnet1.id, aws_subnet.lab7_private_subnet2.id ]
   private_dns_enabled = true
 
@@ -80,7 +80,7 @@ resource "aws_vpc_endpoint" "lab7_ecr_dkr_endpoint" {
   vpc_id = aws_vpc.lab7_vpc.id
   service_name =  "com.amazonaws.eu-north-1.ecr.dkr"
   vpc_endpoint_type = "Interface"
-  security_group_ids = [ aws_security_group.lab7_private_sg ]
+  security_group_ids = [ aws_security_group.lab7_private_sg.id ]
   subnet_ids = [ aws_subnet.lab7_private_subnet1.id, aws_subnet.lab7_private_subnet2.id ]
   private_dns_enabled = true
 
@@ -114,12 +114,11 @@ resource "aws_vpc_security_group_ingress_rule" "lab7_private_sg_ingress" {
   ip_protocol = -1
 }
 
-resource "aws_vpc_security_group_egress_rule" "lab7_private_sg_egress" {
+resource "aws_vpc_security_group_egress_rule" "lab7_private_sg_s3_egress" {
   security_group_id = aws_security_group.lab7_private_sg.id
 
-  referenced_security_group_id = aws_security_group.lab7_private_sg.id
   prefix_list_id = "pl-c3aa4faa"
-  ip_protocol = "HTTPS"
+  ip_protocol = "TCP"
   from_port = 443
   to_port = 443
 }
