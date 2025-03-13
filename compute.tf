@@ -2,7 +2,7 @@ resource "aws_instance" "lab7_linux" {
   ami = "ami-016038ae9cc8d9f51"
   instance_type = "t3.micro"
   subnet_id = aws_subnet.lab7_private_subnet1.id
-  security_groups = [ aws_security_group.lab7_private_sg.name ]
+  vpc_security_group_ids = [ aws_security_group.lab7_private_sg.id ]
   private_ip = "10.7.1.4"
   # key_name = "sandbox_key"  # a key that already existed on my AWS account for debugging purposes
 
@@ -16,7 +16,7 @@ resource "aws_instance" "lab7_windows" {
   ami = "ami-0e0d6e610ffe146fe"
   instance_type = "t3.micro"
   subnet_id = aws_subnet.lab7_private_subnet2.id
-  security_groups = [ aws_security_group.lab7_private_sg.name ]
+  vpc_security_group_ids = [ aws_security_group.lab7_private_sg.id ]
   private_ip = "10.7.2.4"
     # key_name = "sandbox_key"  # a key that already existed on my AWS account for debugging purposes
 
@@ -41,8 +41,10 @@ resource "aws_ecs_cluster_capacity_providers" "name" {
 }
 
 resource "aws_ecs_task_definition" "lab7_website_task" {
-    family = "service"
+    family = "lab7-website"
     # if i end up using AWS ECR ill need to add ecs_execution_role iam 
+    cpu = 512
+    memory = 1024
     container_definitions = jsonencode([
         {
             name = "lab7-website"
@@ -63,6 +65,9 @@ resource "aws_ecs_task_definition" "lab7_website_task" {
         }
     ])  
     task_role_arn = aws_iam_role.lab7_ecs_s3_role.arn
+    execution_role_arn = aws_iam_role.lab7_ecs_ecr_role.arn
+    network_mode = "awsvpc"
+    requires_compatibilities = [ "FARGATE" ]
 
     tags = {
       Project = "lab7"
@@ -112,8 +117,10 @@ resource "aws_ecs_service" "lab7_website_service" {
     cluster = aws_ecs_cluster.lab7_ecs.id
     task_definition = aws_ecs_task_definition.lab7_website_task.arn
     desired_count = 2
-    iam_role = aws_iam_role.lab7_ecs_ecr_role.arn
+    force_new_deployment = true  # remove after debugging
+    # iam_role = aws_iam_role.lab7_ecs_ecr_role.arn
     depends_on = [ aws_iam_policy.lab7_ecr_policy ]
+    launch_type = "FARGATE"
 
     network_configuration {
     subnets          = [ aws_subnet.lab7_private_subnet1.id, aws_subnet.lab7_private_subnet2.id ]
@@ -126,4 +133,8 @@ resource "aws_ecs_service" "lab7_website_service" {
       container_name = "lab7-website"
       container_port = 8080
     }
+
+    tags = {
+    Project = "lab7"
+   }
 }
