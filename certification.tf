@@ -1,5 +1,6 @@
 resource "tls_private_key" "lab7_key" {
-  algorithm = "ECDSA"
+  algorithm = "RSA"
+  rsa_bits = "2048"
 }
 
 resource "tls_self_signed_cert" "lab7_cert" {
@@ -18,6 +19,12 @@ resource "tls_self_signed_cert" "lab7_cert" {
     "digital_signature",
     "server_auth",
   ]
+
+  subject {
+    common_name = "lab7-website.com"
+    organization = "Shaul Hobbies TLD"
+    country = "IL"
+  }
 
   dns_names = [ aws_lb.lab7_lb.dns_name ] 
 }
