@@ -7,13 +7,13 @@ resource "aws_s3_bucket" "lab7_s3" {
 }
 
 resource "aws_s3_object" "lab7_s3_logo1" {
-  bucket = aws_s3_bucket.lab7_s3.id
+  bucket = aws_s3_bucket.lab7_s3.bucket
   key = "logo.png"
   source = "logo.png"
 }
 
 resource "aws_s3_object" "lab7_s3_logo2" {
-  bucket = aws_s3_bucket.lab7_s3.id
+  bucket = aws_s3_bucket.lab7_s3.bucket
   key = "logo192.png"
   source = "logo192.png"
 }
